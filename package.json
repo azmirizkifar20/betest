@@ -1,0 +1,30 @@
+{
+  "name": "ms-azmirf-betest",
+  "version": "1.0.0",
+  "description": "Backend Test",
+  "main": "server.js",
+  "scripts": {
+    "dev": "nodemon server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/azmirizkifar20/azmirf-betest.git"
+  },
+  "author": "azmirf",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/azmirizkifar20/azmirf-betest/issues"
+  },
+  "homepage": "https://github.com/azmirizkifar20/azmirf-betest#readme",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2",
+    "express-validator": "^6.14.2",
+    "jsonwebtoken": "^8.5.1",
+    "mongoose": "^6.7.2"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.20"
+  }
+}
