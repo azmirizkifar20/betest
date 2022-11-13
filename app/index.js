@@ -2,6 +2,7 @@
 require('dotenv').config()
 const cors = require('cors')
 const http = require('http')
+const redis = require('redis')
 const express = require('express')
 const app = express()
 const PORT = process.env.APP_PORT
@@ -15,7 +16,9 @@ const server = http.createServer(app)
 
 // start server
 startServer({ port: PORT })
-.then(connectDB())
+.then(() => {
+    connectDB()
+})
 .catch(err => {
     console.log(err)
     errorLogger.error(err)

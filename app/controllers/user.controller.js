@@ -1,13 +1,30 @@
 'use strict';
-
+const jwt = require('jsonwebtoken')
 const db = require('../models')
 const Response = require('../utils/response')
+const CacheService = require('../services/cache_service')
 
 class UserController {
 
     constructor() {
         // models
         this.user = db.user
+        this.cache_service = new CacheService()
+    }
+
+    generateToken = async(req, res) => {
+        try {
+            const { validate_key } = req.body
+            const token = jwt.sign({ 
+                validateKey: validate_key
+            }, process.env.JWT_SECRET_KEY, {
+                expiresIn: '1d'
+            })
+
+            return Response.send(res, 200, { token }, 'Successfully generate token!')
+        } catch (err) {
+            return Response.send(res, 500, null, "Internal Server Error", err.message)
+        }
     }
 
     /* 
@@ -34,6 +51,9 @@ class UserController {
                 identityNumber
             })
 
+            // save to redis
+            await this.cache_service.set(`user:${user.id}`, JSON.stringify(user))
+
             return Response.send(res, 201, user, 'Successfully create user!')
         } catch (err) {
             return Response.send(res, 500, null, "Internal Server Error", err.message)
@@ -59,13 +79,18 @@ class UserController {
     */
     getSingle = async(req, res) => {
         try {
+            const cacheUser = await this.cache_service.get(`user:${req.params.id}`)
+            if (cacheUser != null) {
+                return Response.send(res, 200, { cache: true, user: JSON.parse(cacheUser) }, 'Successfully get single user!')
+            }
+
             // get user
             const user = await this.user.findById(req.params.id)
 
             if (!user)
                 return Response.send(res, 404, null, 'User not found!')
 
-            return Response.send(res, 200, user, 'Successfully get single user!')
+            return Response.send(res, 200, { cache: false, user }, 'Successfully get single user!')
         } catch (err) {
             return Response.send(res, 500, null, "Internal Server Error", err.message)
         }
@@ -86,7 +111,7 @@ class UserController {
                 find = { accountNumber: req.params.key_value }
             else if (req.params.key_name == 'identity-number')
                 find = { identityNumber: req.params.key_value }
-            
+
             if (find == null)
                 return Response.send(res, 400, null, 'Key name is not recognized!')
 
@@ -144,6 +169,9 @@ class UserController {
 
             // delete user
             user.remove()
+
+            // delete from cache
+            this.delete(`user:${req.params.id}`)
 
             return Response.send(res, 200, null, 'Successfully delete user!')
         } catch (err) {
