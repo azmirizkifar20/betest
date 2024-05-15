@@ -1,0 +1,37 @@
+const redis = require('redis')
+const config = require('../config/redis.config')
+
+class CacheService {
+  constructor() {
+    this._client = redis.createClient({
+      host: config.host,
+    })
+
+    this._client.on('connect', function() {
+      console.log('Redis Connected!')
+    })
+
+    this._client.on('error', (error) => {
+      console.error(error)
+    })
+
+    this._client.connect()
+  }
+
+  async set(key, value, expirationInSecond = 1800) {
+    await this._client.set(key, value, {
+      EX: expirationInSecond,
+    })
+  }
+
+  async get(key) {
+    const result = await this._client.get(key)
+    return result
+  }
+
+  delete(key) {
+    return this._client.del(key)
+  }
+}
+
+module.exports = CacheService

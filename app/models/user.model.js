@@ -1,13 +1,19 @@
+const Helpers = require('../utils/helpers')
+
 module.exports = (mongoose) => {
     const UserSchema = mongoose.Schema({
-        userName: {
+        userId: {
+            type: mongoose.Schema.Types.ObjectId,
+            unique: true
+        },
+        fullName: {
             type: String,
-            required: [true, 'Please add username!']
+            required: [true, 'Please add full name!']
         },
         accountNumber: {
             type: String,
             unique: true,
-            required: [true, 'Please add account number!']
+            default: () => Helpers.generateRandomNumber(6)
         },
         emailAddress: {
             type: String,
@@ -18,22 +24,32 @@ module.exports = (mongoose) => {
                 'Please add a valid email'
             ]
         },
-        identityNumber: {
+        registrationNumber: {
             type: String,
             unique: true,
-            required: [true, 'Please add identity number!'],
-            maxlength: [20, 'Identity number can not be more than 20 characters']
+            default: () => Helpers.generateRandomNumber(12)
         }
     }, {
         timestamps: true
     })
 
-    UserSchema.method('toJSON', function() {
-        const {__v, _id, ...object} = this.toObject()
-        object.id = _id
+    // define index
+    UserSchema.index({ emailAddress: 1 })
 
-        return object
+    // Middleware untuk menyetel userId sama dengan _id
+    UserSchema.pre('save', function(next) {
+        if (!this.userId) {
+            this.userId = this._id
+        }
+        next()
     })
+
+    // UserSchema.method('toJSON', function() {
+    //     const {__v, _id, ...object} = this.toObject()
+    //     object.userId = _id
+
+    //     return object
+    // })
 
     return mongoose.model('User', UserSchema)
 }

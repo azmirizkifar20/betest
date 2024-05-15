@@ -2,7 +2,7 @@
 const jwt = require('jsonwebtoken')
 const db = require('../models')
 const Response = require('../utils/response')
-const CacheService = require('../services/cache_service')
+const CacheService = require('../services/cache.service')
 
 class UserController {
 
@@ -15,7 +15,7 @@ class UserController {
     generateToken = async(req, res) => {
         try {
             const { validate_key } = req.body
-            const token = jwt.sign({ 
+            const token = jwt.sign({
                 validateKey: validate_key
             }, process.env.JWT_SECRET_KEY, {
                 expiresIn: '1d'
@@ -27,27 +27,27 @@ class UserController {
         }
     }
 
-    /* 
+    /*
         ===========================================================================================
-        request raw data contains : 
+        request raw data contains :
         userName, accountNumber, emailAddress, identityNumber
         ===========================================================================================
     */
     create = async(req, res) => {
         try {
             // get raw data
-            const { 
-                userName, 
-                accountNumber, 
-                emailAddress, 
+            const {
+                userName,
+                accountNumber,
+                emailAddress,
                 identityNumber
             } = req.body
 
             // create user
             const user = await this.user.create({
-                userName, 
-                accountNumber, 
-                emailAddress, 
+                userName,
+                accountNumber,
+                emailAddress,
                 identityNumber
             })
 
@@ -71,9 +71,9 @@ class UserController {
         }
     }
 
-    /* 
+    /*
         ===========================================================================================
-        request path params contains : 
+        request path params contains :
         id
         ===========================================================================================
     */
@@ -95,10 +95,10 @@ class UserController {
             return Response.send(res, 500, null, "Internal Server Error", err.message)
         }
     }
-    
-    /* 
+
+    /*
         ===========================================================================================
-        request path params contains : 
+        request path params contains :
         key_name, key_value
         ===========================================================================================
     */
@@ -127,12 +127,12 @@ class UserController {
         }
     }
 
-    /* 
+    /*
         ===========================================================================================
-        request path params contains : 
+        request path params contains :
         id
 
-        request raw data contains (all optional) : 
+        request raw data contains (all optional) :
         userName, accountNumber, emailAddress, identityNumber
         ===========================================================================================
     */
@@ -152,10 +152,10 @@ class UserController {
             return Response.send(res, 500, null, "Internal Server Error", err.message)
         }
     }
-    
-    /* 
+
+    /*
         ===========================================================================================
-        request path params contains : 
+        request path params contains :
         id
         ===========================================================================================
     */

@@ -4,9 +4,10 @@ const PORT = process.env.DB_PORT
 const DB_NAME = process.env.DB_NAME
 
 const connectDB = () => {
+    mongoose.set('strictQuery', true)
     mongoose.connect(`mongodb://${HOST}:${PORT}/${DB_NAME}`, {
         useNewUrlParser: true,
-        useUnifiedTopology: false
+        useUnifiedTopology: true
     })
         .then(conn => console.log(`MongoDB Connected: ${conn.connection.host}`))
         .catch(err => {

@@ -2,13 +2,12 @@
 require('dotenv').config()
 const cors = require('cors')
 const http = require('http')
-const redis = require('redis')
 const express = require('express')
 const app = express()
 const PORT = process.env.APP_PORT
 
 // utility
-const { userRouter } = require('./routes')
+const router = require('./routes/index')
 const connectDB = require('./config/db.config')
 
 // init server
@@ -33,23 +32,14 @@ function startServer({ port = process.env.PORT } = {}) {
     // set utility
     app.use(express.json())
     app.use(express.urlencoded({ extended: true }))
-    app.use(cors({ 
-        origin: true, 
+    app.use(cors({
+        origin: true,
         exposedHeaders: ['Content-Disposition'],
         credentials: true
     }))
 
     // set routing
-    app.use('/api/user', userRouter)
-
-    // service check
-    app.get('/', (req, res) => {
-        return res.status(200).json({
-            success: true,
-            code: 200,
-            message: 'service is running and connected!'
-        })
-    })
+    app.use('/', router)
 
     return new Promise((resolve) => {
         const connection = server.listen(port, () => {
@@ -60,10 +50,10 @@ function startServer({ port = process.env.PORT } = {}) {
             connection.close = () => new Promise((resolveClose) => {
                 originalClose(resolveClose);
             })
-            
+
             // this ensures that we properly close the server when the program exists
             setupCloseOnExit(connection)
-            
+
             // resolve the whole promise with the express server
             resolve(connection)
         })
