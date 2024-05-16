@@ -10,6 +10,10 @@ const PORT = process.env.APP_PORT
 const router = require('./routes/index')
 const connectDB = require('./config/db.config')
 
+// exception
+const { notFound } = require('./exceptions/notFound')
+const { handler } = require('./exceptions/handler')
+
 // init server
 const server = http.createServer(app)
 
@@ -20,7 +24,6 @@ startServer({ port: PORT })
 })
 .catch(err => {
     console.log(err)
-    errorLogger.error(err)
 })
 
 function startServer({ port = process.env.PORT } = {}) {
@@ -40,6 +43,12 @@ function startServer({ port = process.env.PORT } = {}) {
 
     // set routing
     app.use('/', router)
+
+    // catch 404 and forward to error handler
+    app.use(notFound)
+
+    // error handler (async handler)
+    app.use(handler)
 
     return new Promise((resolve) => {
         const connection = server.listen(port, () => {

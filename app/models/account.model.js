@@ -35,12 +35,12 @@ module.exports = (mongoose) => {
         next()
     })
 
-    // AccountSchema.method('toJSON', function() {
-    //     const {__v, _id, ...object} = this.toObject()
-    //     object.accountId = _id
+    AccountSchema.method('toJSON', function() {
+        const {__v, _id, ...object} = this.toObject()
+        object.accountId = _id
 
-    //     return object
-    // })
+        return object
+    })
 
     return mongoose.model('Account', AccountSchema)
 }

@@ -1,7 +1,6 @@
 'use strict'
 const dayjs = require('dayjs')
 const db = require('../models')
-const mongoose = require('mongoose')
 const jwtConfig = require('../config/jwt.config')
 const { hashPassword, isPasswordValid, createJwtToken } = require('../utils/helpers')
 
@@ -12,7 +11,7 @@ class AccountService {
     this.account = db.account
   }
 
-  async createAccount(accountData) {
+  createAccount = async(accountData) => {
     const {
       userName,
       password,
@@ -28,44 +27,26 @@ class AccountService {
     // hash password
     const hashedPassword = await hashPassword(password)
 
-    // start transaction
-    const session = await mongoose.startSession()
-    session.startTransaction()
+    // create new user
+    const user = await this.user.create({ fullName, emailAddress })
 
-    try {
-      // create new user
-      let user = await new this.user({ fullName, emailAddress })
-      user = await user.save({ session })
+    // create new account
+    const account = await this.account.create({
+      userName,
+      password: hashedPassword,
+      user: user.userId
+    })
 
-      // create new account
-      let account = await new this.account({
-        userName,
-        password: hashedPassword,
-        user: user.userId
-      })
-      account = await account.save({ session })
-
-      // commit and end transction
-      await session.commitTransaction()
-      session.endSession()
-
-      return await this.account
-        .findById(account.accountId)
-        .select(['-password', '-updatedAt'])
-        .populate('user', '-_id -__v -updatedAt')
-    } catch(err) {
-      await session.abortTransaction()
-      session.endSession()
-
-      throw new Error(err)
-    }
+    return await this.account
+      .findById(account.accountId)
+      .select(['-password', '-updatedAt'])
+      .populate('user', '-_id -__v -updatedAt')
   }
 
-  async login(userName, password) {
+  login = async(userName, password) => {
     // find account
     const account = await this.account
       .findOne({ userName })
-      .select(['-_id'])
       .populate('user', '-_id -__v')
 
     if (!account)
@@ -82,13 +63,62 @@ class AccountService {
     // remove key password
     delete accountData.password
 
+    // add validate key
+    accountData.validateKey = process.env.JWT_VALIDATE_KEY
+
+    // update lastLoginDateTime to current date
+    await this.account.updateOne(
+      { accountId: account.accountId },
+      { lastLoginDateTime: dayjs().toDate() }
+    )
+
     // create JWT token (return: accessToken, data)
     return await createJwtToken(accountData, jwtConfig.secret, jwtConfig.expiresIn)
   }
 
-  async getAccountsByLastLoginDateTime(days) {
+  generateToken = async(accountId) => {
+    // find account
+    const account = await this.account
+      .findById(accountId)
+      .select(['-_id', '-password'])
+      .populate('user', '-_id -__v')
+
+    if (!account)
+      throw new Error('Invalid accountId!')
+
+    // need to convert mongodb obj to js obj (for signing jwt)
+    const accountData = JSON.parse(JSON.stringify(account))
+
+    // add validate key
+    accountData.validateKey = process.env.JWT_VALIDATE_KEY
+
+    // create JWT token (return: accessToken, data)
+    const generatedToken = await createJwtToken(accountData, jwtConfig.secret, jwtConfig.expiresIn)
+
+    return generatedToken.accessToken
+  }
+
+  getAccountInfo = async(accountId) => {
+    return await this.account
+      .findById(accountId)
+      .select(['-password'])
+      .populate('user', '-_id -__v')
+  }
+
+  getAccountsByLastLoginDateTime = async(days) => {
     const date = dayjs().subtract(days, 'day').toDate()
     return await this.account.find({ lastLoginDateTime: { $lt: date } })
+  }
+
+  deleteUserAccount = async(accountId) => {
+    // get data account & delete data
+    const account = await this.account.findByIdAndDelete(accountId)
+    if (!account) throw new Error('Invalid accountId!')
+
+    // delete user data
+    await this.user.findByIdAndDelete(account.user)
+
+    return true
   }
 }
 

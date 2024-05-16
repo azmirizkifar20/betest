@@ -3,7 +3,7 @@ const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 
 class Helpers {
-  generateRandomNumber(length) {
+  generateRandomNumber = (length) => {
     let result = '';
     const characters = '0123456789';
     const charactersLength = characters.length;
@@ -14,18 +14,18 @@ class Helpers {
     return result;
   }
 
-  async hashPassword(password) {
+  hashPassword = async(password) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
     return hashedPassword;
   }
 
-  async isPasswordValid(clientPassword, serverPassword) {
+  isPasswordValid = async(clientPassword, serverPassword) => {
     const isValid = await bcrypt.compare(clientPassword, serverPassword)
     return isValid
   }
 
-  async createJwtToken(data, secretKey, expiresIn) {
+  createJwtToken = async(data, secretKey, expiresIn) => {
     return new Promise((resolve, reject) => {
         jwt.sign(
             data,
@@ -45,7 +45,7 @@ class Helpers {
     })
 }
 
-  validateData(data, parentKey, requiredKeys) {
+  validateData = (data, parentKey, requiredKeys) => {
     if (!Array.isArray(data))
       return {
         valid: false,
@@ -66,7 +66,7 @@ class Helpers {
     return { valid: true }
   }
 
-  validateDataArrayObj(data, parentKey, requiredKeys) {
+  validateDataArrayObj = (data, parentKey, requiredKeys) => {
     if (!Array.isArray(data))
       return {
         valid: false,

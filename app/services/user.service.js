@@ -7,15 +7,15 @@ class UserService {
     this.user = db.user
   }
 
-  async createUser(userData) {
-    const user = new this.user(userData);
-    return await user.save();
-  }
-
-  async getUserBySpesificData(data) {
+  getUserBySpesificData = async(data) => {
     return await this.user
       .findOne(data)
       .select(['-_id'])
+  }
+
+  updateUser = async(userId, data) => {
+    return await this.user
+      .findByIdAndUpdate(userId, data, { new: true })
   }
 }
 

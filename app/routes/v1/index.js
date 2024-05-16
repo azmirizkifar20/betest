@@ -1,7 +1,9 @@
 'use strict'
 const router = require('express').Router()
-const account = require('./account.routes')
+const auth = require('./auth.routes')
+const account = require('./user-account.routes')
 
+router.use('/auth', auth)
 router.use('/accounts', account)
 
 module.exports = router

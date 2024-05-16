@@ -1,10 +1,11 @@
+'use strict'
 const redis = require('redis')
 const config = require('../config/redis.config')
 
 class CacheService {
   constructor() {
     this._client = redis.createClient({
-      host: config.host,
+      url: `redis://:${config.password}@${config.host}:${config.port}`,
     })
 
     this._client.on('connect', function() {
@@ -18,20 +19,20 @@ class CacheService {
     this._client.connect()
   }
 
-  async set(key, value, expirationInSecond = 1800) {
+  set = async(key, value, expirationInSecond = 1800) => {
     await this._client.set(key, value, {
       EX: expirationInSecond,
     })
   }
 
-  async get(key) {
+  get = async(key) => {
     const result = await this._client.get(key)
     return result
   }
 
-  delete(key) {
+  delete = (key) => {
     return this._client.del(key)
   }
 }
 
-module.exports = CacheService
+module.exports = new CacheService()

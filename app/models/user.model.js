@@ -44,12 +44,12 @@ module.exports = (mongoose) => {
         next()
     })
 
-    // UserSchema.method('toJSON', function() {
-    //     const {__v, _id, ...object} = this.toObject()
-    //     object.userId = _id
+    UserSchema.method('toJSON', function() {
+        const {__v, _id, ...object} = this.toObject()
+        object.userId = _id
 
-    //     return object
-    // })
+        return object
+    })
 
     return mongoose.model('User', UserSchema)
 }
